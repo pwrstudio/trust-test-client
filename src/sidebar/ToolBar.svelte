@@ -6,10 +6,10 @@
   // # # # # # # # # # # # # #
 
   // *** IMPORTS
-  import { links, navigate } from "svelte-routing"
-  import { createEventDispatcher } from "svelte"
+  import { links, navigate } from "svelte-routing";
+  import { createEventDispatcher } from "svelte";
   // import get from "lodash/get"
-  const dispatch = createEventDispatcher()
+  const dispatch = createEventDispatcher();
 
   // *** STORES
   // import {
@@ -18,24 +18,24 @@
   // } from "../stores"
 
   // *** PROPS
-  export let section = ""
+  export let section = "";
 
   // *** VARIABLES
-  let chatInputValue = ""
-  let showChatInput = false
+  let chatInputValue = "";
+  let showChatInput = false;
 
   const submitChat = () => {
     dispatch("submit", {
       text: chatInputValue,
-    })
-    chatInputValue = ""
-  }
+    });
+    chatInputValue = "";
+  };
 
   const teleport = () => {
-    dispatch("teleport")
-  }
+    dispatch("teleport");
+  };
 
-  let notificationCount = 0
+  let notificationCount = 0;
 
   // const getNotifications = () => {
   //   if (
@@ -204,8 +204,8 @@
     type="[text]"
     maxlength="600"
     bind:value={chatInputValue}
-    on:keydown={e => {
-      if (e.keyCode == 13) submitChat()
+    on:keydown={(e) => {
+      if (e.keyCode == 13) submitChat();
     }} />
   <button on:click={submitChat}>Send</button>
   <!-- {#if $localUserAuthenticated}

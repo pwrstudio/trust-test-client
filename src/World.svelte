@@ -6,53 +6,53 @@
   // # # # # # # # # # # # # #
 
   // *** IMPORTS
-  import { onMount } from "svelte"
-  import * as Colyseus from "colyseus.js"
-  import * as PIXI from "pixi.js"
-  import { Viewport } from "pixi-viewport"
-  import get from "lodash/get"
-  import sample from "lodash/sample"
-  import { fly, scale, fade } from "svelte/transition"
-  import { quartOut } from "svelte/easing"
-  import { urlFor, loadData, client } from "./sanity.js"
-  import { links, navigate } from "svelte-routing"
-  import { Howl } from "howler"
-  import MediaQuery from "svelte-media-query"
-  import Tweener from "tweener"
-  import Cookies from "js-cookie"
+  import { onMount } from "svelte";
+  import * as Colyseus from "colyseus.js";
+  import * as PIXI from "pixi.js";
+  import { Viewport } from "pixi-viewport";
+  import get from "lodash/get";
+  import sample from "lodash/sample";
+  import { fly, scale, fade } from "svelte/transition";
+  import { quartOut } from "svelte/easing";
+  import { urlFor, loadData, client } from "./sanity.js";
+  import { links, navigate } from "svelte-routing";
+  import { Howl } from "howler";
+  import MediaQuery from "svelte-media-query";
+  import Tweener from "tweener";
+  import Cookies from "js-cookie";
 
   // *** COMPONENTS
   // sidebar
-  import Chat from "./sidebar/Chat.svelte"
-  import MiniMap from "./sidebar/MiniMap.svelte"
-  import Menu from "./sidebar/Menu.svelte"
-  import ToolBar from "./sidebar/ToolBar.svelte"
+  import Chat from "./sidebar/Chat.svelte";
+  import MiniMap from "./sidebar/MiniMap.svelte";
+  import Menu from "./sidebar/Menu.svelte";
+  import ToolBar from "./sidebar/ToolBar.svelte";
   // import Seminar from "./sidebar/Seminar.svelte"
   // import Messaging from "./sidebar/Messaging.svelte"
-  import Clock from "./sidebar/Clock.svelte"
+  import Clock from "./sidebar/Clock.svelte";
   // lists
-  import EventList from "./lists/EventList.svelte"
-  import EventListFull from "./lists/EventListFull.svelte"
-  import CaseStudyList from "./lists/CaseStudyList.svelte"
-  import EventListSliderMobile from "./lists/EventListSliderMobile.svelte"
+  import EventList from "./lists/EventList.svelte";
+  import EventListFull from "./lists/EventListFull.svelte";
+  import CaseStudyList from "./lists/CaseStudyList.svelte";
+  import EventListSliderMobile from "./lists/EventListSliderMobile.svelte";
   // singles
-  import CaseStudySingle from "./singles/CaseStudySingle.svelte"
-  import PageSingle from "./singles/PageSingle.svelte"
-  import UserProfileSingle from "./singles/UserProfileSingle.svelte"
-  import EventSingle from "./singles/event/EventSingle.svelte"
-  import LiveSingle from "./singles/event/LiveSingle.svelte"
-  import AudioInstallationSingle from "./singles/AudioInstallationSingle.svelte"
+  import CaseStudySingle from "./singles/CaseStudySingle.svelte";
+  import PageSingle from "./singles/PageSingle.svelte";
+  import UserProfileSingle from "./singles/UserProfileSingle.svelte";
+  import EventSingle from "./singles/event/EventSingle.svelte";
+  import LiveSingle from "./singles/event/LiveSingle.svelte";
+  import AudioInstallationSingle from "./singles/AudioInstallationSingle.svelte";
   // overlays
-  import LoadingScreen from "./overlays/LoadingScreen.svelte"
-  import Error from "./overlays/Error.svelte"
-  import Reconnection from "./overlays/Reconnection.svelte"
-  import Tutorial from "./overlays/Tutorial.svelte"
-  import UsernameDialog from "./overlays/UsernameDialog.svelte"
+  import LoadingScreen from "./overlays/LoadingScreen.svelte";
+  import Error from "./overlays/Error.svelte";
+  import Reconnection from "./overlays/Reconnection.svelte";
+  import Tutorial from "./overlays/Tutorial.svelte";
+  import UsernameDialog from "./overlays/UsernameDialog.svelte";
   // ...
-  import AudioChat from "./AudioChat.svelte"
+  import AudioChat from "./AudioChat.svelte";
   // import InventoryMessage from "./InventoryMessage.svelte"
-  import MetaData from "./MetaData.svelte"
-  import Card from "./Card.svelte"
+  import MetaData from "./MetaData.svelte";
+  import Card from "./Card.svelte";
 
   // *** GLOBAL
   import {
@@ -65,7 +65,8 @@
     TEXT_STYLE_AVATAR,
     TEXT_STYLE_AVATAR_AUTHENTICATED,
     TEXT_STYLE_CASE_STUDY,
-  } from "./global.js"
+    GAME_SERVER_URL,
+  } from "./global.js";
 
   // *** STORES
   import {
@@ -82,38 +83,38 @@
     currentAudioRoom,
     currentVideoRoom,
     globalUserList,
-  } from "./stores.js"
-  import { window } from "lodash/_freeGlobal"
+  } from "./stores.js";
+  import { window } from "lodash/_freeGlobal";
 
   // *** PROPS
-  export let params = false
+  export let params = false;
 
   // *** DOM REFERENCES
-  let gameContainer = {}
+  let gameContainer = {};
 
   // *** VARIABLES
-  let activeContentClosed = false
+  let activeContentClosed = false;
   // let supportStreamClosed = false
-  let audioChatActive = false
-  let sidebarHidden = false
+  let audioChatActive = false;
+  let sidebarHidden = false;
   // let intentToPickUp = false
-  let inAudioZone = false
-  let mobileExpanded = false
-  let miniImage = false
-  let showWelcomeCard = false
-  let localPlayers = {}
-  let chatMessages = []
-  let moveQ = []
-  let reconnectionAttempts = 0
-  let disconnectionCode = 0
-  let currentStreamEvent = false
-  let currentStreamUrl = false
+  let inAudioZone = false;
+  let mobileExpanded = false;
+  let miniImage = false;
+  let showWelcomeCard = false;
+  let localPlayers = {};
+  let chatMessages = [];
+  let moveQ = [];
+  let reconnectionAttempts = 0;
+  let disconnectionCode = 0;
+  let currentStreamEvent = false;
+  let currentStreamUrl = false;
   // let supportStreamUrl = false
-  let closedAreaCards = []
+  let closedAreaCards = [];
 
   // ___ Routing
-  let section = false
-  let slug = false
+  let section = false;
+  let slug = false;
   // let sso = false
   // let sig = false
   // let returnSection = false
@@ -124,30 +125,30 @@
 
   $: {
     // ___ Split the url parameter into variables
-    const args = get(params, "[*]", "").split("/")
-    section = args[0] && args[0].length > 0 ? args[0] : "seed"
+    const args = get(params, "[*]", "").split("/");
+    section = args[0] && args[0].length > 0 ? args[0] : "seed";
     // if (section === "authenticate") {
     //   sso = args[1] && args[1].length > 0 ? args[1] : false
     //   sig = args[2] && args[2].length > 0 ? args[2] : false
     //   returnSection = args[3] && args[3].length > 0 ? args[3] : false
     //   returnSlug = args[4] && args[4].length > 0 ? args[4] : false
     // } else {
-    slug = args[1] && args[1].length > 0 ? args[1] : false
+    slug = args[1] && args[1].length > 0 ? args[1] : false;
     // }
-    console.log("SECTION:", section)
-    console.log("SLUG:", slug)
+    console.log("SECTION:", section);
+    console.log("SLUG:", slug);
   }
 
   $: {
     if (section === "area" && slug) {
       if ($areaList && Array.isArray($areaList)) {
-        const targetArea = $areaList.find(a => a.slug.current === slug)
+        const targetArea = $areaList.find((a) => a.slug.current === slug);
         if (targetArea) {
           // __ Clear section and slug
-          navigate("/")
+          navigate("/");
           // __ Teleport
           if (REVERSE_HEX_MAP[targetArea.color]) {
-            teleportTo(REVERSE_HEX_MAP[targetArea.color])
+            teleportTo(REVERSE_HEX_MAP[targetArea.color]);
           }
         }
       }
@@ -155,121 +156,123 @@
   }
   // ___ Listen for changes to page visibility (ie. tab being out of focus etc..)
   // ___ Fastforward animations when window is refocused
-  let deltaJump = 0
-  let hiddenTime = 0
-  let hidden, visibilityChange
+  let deltaJump = 0;
+  let hiddenTime = 0;
+  let hidden, visibilityChange;
 
   if (typeof document.hidden !== "undefined") {
-    hidden = "hidden"
-    visibilityChange = "visibilitychange"
+    hidden = "hidden";
+    visibilityChange = "visibilitychange";
   } else if (typeof document.msHidden !== "undefined") {
-    hidden = "msHidden"
-    visibilityChange = "msvisibilitychange"
+    hidden = "msHidden";
+    visibilityChange = "msvisibilitychange";
   } else if (typeof document.webkitHidden !== "undefined") {
-    hidden = "webkitHidden"
-    visibilityChange = "webkitvisibilitychange"
+    hidden = "webkitHidden";
+    visibilityChange = "webkitvisibilitychange";
   }
 
   const handleVisibilityChange = () => {
     if (document[hidden]) {
-      hiddenTime = Date.now()
+      hiddenTime = Date.now();
     } else {
       // Number of frames missed (1000ms / 60frames ≈ 16.6666)
-      deltaJump = Math.round((Date.now() - hiddenTime) / 16.6666)
+      deltaJump = Math.round((Date.now() - hiddenTime) / 16.6666);
     }
-  }
+  };
 
-  document.addEventListener(visibilityChange, handleVisibilityChange, false)
+  document.addEventListener(visibilityChange, handleVisibilityChange, false);
 
   // ___ Get data from Sanity CMS
-  const graphicsSettings = loadData(QUERY.GRAPHICS_SETTINGS).catch(err => {
-    console.log(err)
-  })
-  const events = loadData(QUERY.EVENTS).catch(err => {
-    console.log(err)
-  })
-  const exhibitions = loadData(QUERY.EXHIBITIONS).catch(err => {
-    console.log(err)
-  })
-  const caseStudies = loadData(QUERY.CASE_STUDIES).catch(err => {
-    console.log(err)
-  })
-  const audioInstallations = loadData(QUERY.AUDIO_INSTALLATIONS).catch(err => {
-    console.log(err)
-  })
-  const landMarks = loadData(QUERY.LAND_MARKS).catch(err => {
-    console.log(err)
-  })
-  const users = loadData(QUERY.USERS).catch(err => {
-    console.log(err)
-  })
-  const pages = loadData(QUERY.PAGES).catch(err => {
-    console.log(err)
-  })
-  const audioRoomNames = loadData(QUERY.AUDIOROOM_NAMES).catch(err => {
-    console.log(err)
-  })
-  const tutorialCard = loadData(QUERY.TUTORIAL_CARD).catch(err => {
-    console.log(err)
-  })
+  const graphicsSettings = loadData(QUERY.GRAPHICS_SETTINGS).catch((err) => {
+    console.log(err);
+  });
+  const events = loadData(QUERY.EVENTS).catch((err) => {
+    console.log(err);
+  });
+  const exhibitions = loadData(QUERY.EXHIBITIONS).catch((err) => {
+    console.log(err);
+  });
+  const caseStudies = loadData(QUERY.CASE_STUDIES).catch((err) => {
+    console.log(err);
+  });
+  const audioInstallations = loadData(QUERY.AUDIO_INSTALLATIONS).catch(
+    (err) => {
+      console.log(err);
+    }
+  );
+  const landMarks = loadData(QUERY.LAND_MARKS).catch((err) => {
+    console.log(err);
+  });
+  const users = loadData(QUERY.USERS).catch((err) => {
+    console.log(err);
+  });
+  const pages = loadData(QUERY.PAGES).catch((err) => {
+    console.log(err);
+  });
+  const audioRoomNames = loadData(QUERY.AUDIOROOM_NAMES).catch((err) => {
+    console.log(err);
+  });
+  const tutorialCard = loadData(QUERY.TUTORIAL_CARD).catch((err) => {
+    console.log(err);
+  });
 
   // __ Set global user list
-  users.then(users => {
-    globalUserList.set(users)
-    return users
-  })
+  users.then((users) => {
+    globalUserList.set(users);
+    return users;
+  });
 
   loadData(QUERY.GLOBAL_SETTINGS)
-    .then(gS => {
-      globalSettings.set(gS)
+    .then((gS) => {
+      globalSettings.set(gS);
     })
-    .catch(err => {
-      console.log(err)
-    })
+    .catch((err) => {
+      console.log(err);
+    });
 
   loadData(QUERY.AREAS)
-    .then(areas => {
-      areaList.set(areas)
+    .then((areas) => {
+      areaList.set(areas);
     })
-    .catch(err => {
-      console.log(err)
-    })
+    .catch((err) => {
+      console.log(err);
+    });
 
   let activeStreams = loadData(QUERY.ACTIVE_STREAMS)
-    .catch(err => {
-      console.log(err)
+    .catch((err) => {
+      console.log(err);
     })
-    .then(activeStreams => {
-      currentStreamEvent = activeStreams.mainStreamEvent
-      currentStreamUrl = activeStreams.mainStream
+    .then((activeStreams) => {
+      currentStreamEvent = activeStreams.mainStreamEvent;
+      currentStreamUrl = activeStreams.mainStream;
       // supportStreamUrl = activeStreams.supportStream
-    })
+    });
 
   // __ Listen for changes to the active streams post
-  client.listen(QUERY.ACTIVE_STREAMS).subscribe(update => {
-    currentStreamUrl = false
-    currentStreamEvent = false
+  client.listen(QUERY.ACTIVE_STREAMS).subscribe((update) => {
+    currentStreamUrl = false;
+    currentStreamEvent = false;
     // supportStreamUrl = false
     setTimeout(() => {
       activeStreams = loadData(QUERY.ACTIVE_STREAMS)
-        .then(aS => {
+        .then((aS) => {
           if (aS.mainStream) {
-            currentStreamEvent = aS.mainStreamEvent
-            currentStreamUrl = aS.mainStream
+            currentStreamEvent = aS.mainStreamEvent;
+            currentStreamUrl = aS.mainStream;
             // supportStreamUrl = activeStreams.supportStream
-            activeContentClosed = false
+            activeContentClosed = false;
             // supportStreamClosed = false
           } else {
-            currentStreamUrl = false
-            currentStreamEvent = false
+            currentStreamUrl = false;
+            currentStreamEvent = false;
             // supportStreamUrl = false
           }
         })
-        .catch(err => {
-          console.log(err)
-        })
-    }, 1000)
-  })
+        .catch((err) => {
+          console.log(err);
+        });
+    }, 1000);
+  });
 
   // ___ Set overarching state of the UI
   const STATE = {
@@ -278,90 +281,90 @@
     LOADING: 2,
     DISCONNECTED: 3,
     SETUSERNAME: 4,
-  }
+  };
 
-  const UI = { state: STATE.LOADING, errorMessage: false }
+  const UI = { state: STATE.LOADING, errorMessage: false };
 
   const setUIState = (newState, errorMessage = false) => {
-    console.log("NEW STATE", newState)
+    console.log("NEW STATE", newState);
     switch (newState) {
       case STATE.READY:
-        UI.state = STATE.READY
-        break
+        UI.state = STATE.READY;
+        break;
       case STATE.LOADING:
-        UI.state = STATE.LOADING
-        break
+        UI.state = STATE.LOADING;
+        break;
       case STATE.DISCONNECTED:
-        UI.state = STATE.DISCONNECTED
-        break
+        UI.state = STATE.DISCONNECTED;
+        break;
       case STATE.SETUSERNAME:
-        UI.state = STATE.SETUSERNAME
-        break
+        UI.state = STATE.SETUSERNAME;
+        break;
       default:
-        UI.state = STATE.ERROR
-        UI.errorMessage = errorMessage
+        UI.state = STATE.ERROR;
+        UI.errorMessage = errorMessage;
     }
-  }
+  };
 
   // __ Connect to Colyseus gameserver
-  const gameClient = new Colyseus.Client("wss://gameserver.post-rational.org")
+  const gameClient = new Colyseus.Client(GAME_SERVER_URL);
 
   // ___ For animations
-  const tweener = new Tweener(1 / 60)
+  const tweener = new Tweener(1 / 60);
 
   // PIXI
-  let app = {}
-  let viewport = {}
-  let ticker = {}
-  let avatarSpritesheets = {}
+  let app = {};
+  let viewport = {};
+  let ticker = {};
+  let avatarSpritesheets = {};
   // layers
-  let mapLayer = {}
+  let mapLayer = {};
   // let emergentLayer = {}
-  let exhibitionLayer = {}
-  let audioInstallationLayer = {}
-  let playerLayer = {}
-  let landMarkLayer = {}
+  let exhibitionLayer = {};
+  let audioInstallationLayer = {};
+  let playerLayer = {};
+  let landMarkLayer = {};
   // misc
-  let targetGraphics = {}
+  let targetGraphics = {};
   // let cull = {}
   // const cull = new Cull.Simple();
 
   const checkAudioProximity = () => {
-    audioInstallationLayer.children.forEach(a => {
+    audioInstallationLayer.children.forEach((a) => {
       // Get distance between user and audio installation
       const dist = Math.sqrt(
         Math.pow(a.x - localPlayers[$localUserSessionID].avatar.x, 2) +
           Math.pow(a.y - localPlayers[$localUserSessionID].avatar.y, 2)
-      )
+      );
       // Check if user is within range of audio installation
       if (dist < a.radius) {
-        inAudioZone = a.slug
+        inAudioZone = a.slug;
         if (!a.audio.playing() && !a.noAutoplay) {
-          a.audio.play()
+          a.audio.play();
         }
         // Set volume proportionally to distance
         // Formula to translate ranges:
         // NewValue = ((OldValue - OldMin) * NewRange) / OldRange + NewMin;
-        a.audio.volume(1 - dist / a.radius)
+        a.audio.volume(1 - dist / a.radius);
       }
       if (dist > a.radius) {
         if (inAudioZone == a.slug) {
-          inAudioZone = false
+          inAudioZone = false;
         }
         if (a.audio.playing()) {
-          a.audio.pause()
-          a.audio.volume(0)
+          a.audio.pause();
+          a.audio.volume(0);
         }
       }
-    })
-  }
+    });
+  };
 
   // __ Game loop
   // __ Called at approximately 60fps by pixi.ticker
-  const updatePositions = delta => {
+  const updatePositions = (delta) => {
     // Combine delta (lag) and potential time passed since window was in focus
-    let deltaRounded = Math.round(delta) + deltaJump
-    deltaJump = 0
+    let deltaRounded = Math.round(delta) + deltaJump;
+    deltaJump = 0;
     // Iterate over all users currently in move queue
     for (let key in moveQ) {
       if (localPlayers[key]) {
@@ -369,76 +372,76 @@
           if (moveQ[key].length - deltaRounded < 0) {
             // User reached destination while the window was out of focus
             // Move to final step and clear users's move queue
-            let step = moveQ[key][moveQ[key].length - 1]
-            localPlayers[key].avatar.setAnimation(step.direction)
-            localPlayers[key].avatar.x = step.x
-            localPlayers[key].avatar.y = step.y
-            localPlayers[key].area = step.area
-            moveQ[key] = []
+            let step = moveQ[key][moveQ[key].length - 1];
+            localPlayers[key].avatar.setAnimation(step.direction);
+            localPlayers[key].avatar.x = step.x;
+            localPlayers[key].avatar.y = step.y;
+            localPlayers[key].area = step.area;
+            moveQ[key] = [];
             if (key === $localUserSessionID) {
-              checkAudioProximity()
+              checkAudioProximity();
             }
           } else {
             // Get next step, adjusting for delta
-            moveQ[key].splice(0, deltaRounded - 1)
-            let step = moveQ[key].shift()
-            localPlayers[key].avatar.setAnimation(step.direction)
-            localPlayers[key].avatar.x = step.x
-            localPlayers[key].avatar.y = step.y
-            localPlayers[key].area = step.area
+            moveQ[key].splice(0, deltaRounded - 1);
+            let step = moveQ[key].shift();
+            localPlayers[key].avatar.setAnimation(step.direction);
+            localPlayers[key].avatar.x = step.x;
+            localPlayers[key].avatar.y = step.y;
+            localPlayers[key].area = step.area;
             if (key === $localUserSessionID && moveQ[key].length % 30 === 0) {
               // Set current area for users
-              currentArea.set(localPlayers[$localUserSessionID].area)
+              currentArea.set(localPlayers[$localUserSessionID].area);
               // Check proximity to audio installations every 30th step
-              checkAudioProximity()
+              checkAudioProximity();
             }
           }
         } else {
           // Destination reached
           if (key === $localUserSessionID) {
-            hideTarget()
-            checkAudioProximity()
+            hideTarget();
+            checkAudioProximity();
             // User was walking towards a case study
             // if (intentToPickUp) {
             //   pickUpCaseStudy(intentToPickUp)
             // }
           }
-          localPlayers[key].avatar.setAnimation("rest")
-          delete moveQ[key]
+          localPlayers[key].avatar.setAnimation("rest");
+          delete moveQ[key];
         }
       } else {
-        delete moveQ[key]
+        delete moveQ[key];
       }
     }
-  }
+  };
 
   // __ Mark path destination
   const showTarget = (x, y) => {
-    const graphics = new PIXI.Graphics()
-    graphics.beginFill(0xffffff)
-    graphics.alpha = 0.5
-    graphics.drawCircle(x, y, 10)
-    graphics.endFill()
-    mapLayer.addChild(graphics)
-    targetGraphics = graphics
-  }
+    const graphics = new PIXI.Graphics();
+    graphics.beginFill(0xffffff);
+    graphics.alpha = 0.5;
+    graphics.drawCircle(x, y, 10);
+    graphics.endFill();
+    mapLayer.addChild(graphics);
+    targetGraphics = graphics;
+  };
 
   const hideTarget = () => {
-    mapLayer.removeChild(targetGraphics)
-    targetGraphics = {}
-  }
+    mapLayer.removeChild(targetGraphics);
+    targetGraphics = {};
+  };
 
   // *** GLOBAL FUNCTIONS
-  let teleportTo = () => {}
-  let submitChat = () => {}
+  let teleportTo = () => {};
+  let submitChat = () => {};
   // let dropCaseStudy = () => {}
   // let pickUpCaseStudy = () => {}
 
   const initializeGameWorld = () => {
     // __ Load assets
-    graphicsSettings.then(graphicsSettings => {
+    graphicsSettings.then((graphicsSettings) => {
       // __ Load map
-      const mapAsset = get(graphicsSettings, "mapLink.mainImage.asset", false)
+      const mapAsset = get(graphicsSettings, "mapLink.mainImage.asset", false);
       if (mapAsset) {
         // __ Get minimap URL
         miniImage = urlFor(graphicsSettings.mapLink.miniImage.asset)
@@ -446,59 +449,61 @@
           .height(400)
           .quality(100)
           .auto("format")
-          .url()
+          .url();
         // __ Load main map
-        const mapLoader = new PIXI.Loader()
-        const mapUrl = urlFor(mapAsset).url()
-        mapLoader.add("map", mapUrl)
+        const mapLoader = new PIXI.Loader();
+        const mapUrl = urlFor(mapAsset).url();
+        mapLoader.add("map", mapUrl);
         mapLoader.load((loader, resources) => {
-          const map = new PIXI.Sprite(resources.map.texture)
-          map.width = MAP.WIDTH
-          map.height = MAP.HEIGHT
-          mapLayer.addChild(map)
-        })
+          const map = new PIXI.Sprite(resources.map.texture);
+          map.width = MAP.WIDTH;
+          map.height = MAP.HEIGHT;
+          mapLayer.addChild(map);
+        });
       } else {
-        setUIState(STATE.ERROR, "Unable to load map")
-        throw "Unable to load map"
+        setUIState(STATE.ERROR, "Unable to load map");
+        throw "Unable to load map";
       }
 
       // __ Load avatars
-      const activeAvatars = get(graphicsSettings, "activeAvatars", false)
-      const avatarLoader = new PIXI.Loader()
+      const activeAvatars = get(graphicsSettings, "activeAvatars", false);
+      const avatarLoader = new PIXI.Loader();
       if (activeAvatars && activeAvatars.length > 0) {
         activeAvatars.forEach((avatar, index) => {
-          const spriteUrl = get(avatar, "spriteJsonURL", false)
+          const spriteUrl = get(avatar, "spriteJsonURL", false);
           if (spriteUrl) {
-            avatarLoader.add(avatar._id, spriteUrl)
+            avatarLoader.add(avatar._id, spriteUrl);
           }
-        })
+        });
       } else {
-        setUIState(STATE.ERROR, "Unable to load avatars")
-        throw "Unable to load avatars"
+        setUIState(STATE.ERROR, "Unable to load avatars");
+        throw "Unable to load avatars";
       }
 
       avatarLoader.load((loader, resources) => {
         for (let key of Object.keys(resources)) {
           if (resources[key].extension === "json") {
-            avatarSpritesheets[key] = resources[key].spritesheet
+            avatarSpritesheets[key] = resources[key].spritesheet;
           }
         }
 
         // __ Create player
         const createPlayer = (playerOptions, sessionId) => {
           // __ Create sprites for all motion states
-          const sprites = ["rest", "front", "back", "left", "right"].map(ms => {
-            const sprite = new PIXI.AnimatedSprite(
-              avatarSpritesheets[playerOptions.avatar].animations[ms]
-            )
-            sprite.name = ms
-            sprite.visible = ms === "rest" ? true : false
-            sprite.height = 60
-            sprite.width = 60
-            sprite.animationSpeed = ms === "rest" ? 0.02 : 0.1
-            sprite.play()
-            return sprite
-          })
+          const sprites = ["rest", "front", "back", "left", "right"].map(
+            (ms) => {
+              const sprite = new PIXI.AnimatedSprite(
+                avatarSpritesheets[playerOptions.avatar].animations[ms]
+              );
+              sprite.name = ms;
+              sprite.visible = ms === "rest" ? true : false;
+              sprite.height = 60;
+              sprite.width = 60;
+              sprite.animationSpeed = ms === "rest" ? 0.02 : 0.1;
+              sprite.play();
+              return sprite;
+            }
+          );
 
           // __ Name graphics (shown on hover)
           const textSprite = new PIXI.Text(
@@ -506,31 +511,32 @@
             playerOptions.authenticated
               ? TEXT_STYLE_AVATAR_AUTHENTICATED
               : TEXT_STYLE_AVATAR
-          )
-          const txtBG = new PIXI.Sprite(PIXI.Texture.WHITE)
-          txtBG.width = textSprite.width + 10
-          txtBG.height = textSprite.height + 10
-          textSprite.x = 5
-          textSprite.y = 5
-          const textContainer = new PIXI.Container()
-          textContainer.addChild(txtBG, textSprite)
-          textContainer.name = "text"
+          );
+          const txtBG = new PIXI.Sprite(PIXI.Texture.WHITE);
+          txtBG.width = textSprite.width + 10;
+          txtBG.height = textSprite.height + 10;
+          textSprite.x = 5;
+          textSprite.y = 5;
+          const textContainer = new PIXI.Container();
+          textContainer.addChild(txtBG, textSprite);
+          textContainer.name = "text";
 
           // __ Add sprites and initial position to container
-          const avatar = new PIXI.Container()
-          avatar.addChild(...sprites)
-          avatar.motionState = "rest"
-          avatar.x = playerOptions.x
-          avatar.y = playerOptions.y
-          avatar.pivot.x = avatar.width / 2
-          avatar.pivot.y = avatar.height / 2
-          avatar.interactive = true
-          avatar.setAnimation = direction => {
-            avatar.motionState = direction
-            avatar.children.forEach(c => {
-              c.visible = c.name == direction || c.name == "text" ? true : false
-            })
-          }
+          const avatar = new PIXI.Container();
+          avatar.addChild(...sprites);
+          avatar.motionState = "rest";
+          avatar.x = playerOptions.x;
+          avatar.y = playerOptions.y;
+          avatar.pivot.x = avatar.width / 2;
+          avatar.pivot.y = avatar.height / 2;
+          avatar.interactive = true;
+          avatar.setAnimation = (direction) => {
+            avatar.motionState = direction;
+            avatar.children.forEach((c) => {
+              c.visible =
+                c.name == direction || c.name == "text" ? true : false;
+            });
+          };
 
           const player = {
             avatar: avatar,
@@ -545,52 +551,52 @@
             authenticated: playerOptions.authenticated,
             id: sessionId,
             isSelf: playerOptions.uuid === $localUserUUID,
-          }
+          };
 
-          const onDown = e => {
+          const onDown = (e) => {
             // __ Open profile if accredited user
             if (player.authenticated) {
               // __ Get user from userlist
               const targetUser = $globalUserList.find(
-                u => u.username === player.discourseName
-              )
+                (u) => u.username === player.discourseName
+              );
               if (targetUser && get(targetUser, "slug.current", false)) {
-                navigate("/profiles/" + targetUser.slug.current)
+                navigate("/profiles/" + targetUser.slug.current);
               }
             }
             if (player.uuid != $localUserUUID) {
-              e.stopPropagation()
+              e.stopPropagation();
             }
-          }
+          };
 
           const onEnter = () => {
             if (player.authenticated) {
-              gameContainer.style.cursor = "pointer"
+              gameContainer.style.cursor = "pointer";
             }
-            textContainer.y = 30 - textContainer.height / 2
-            textContainer.x = -(textContainer.width / 2) + 30
-            avatar.addChild(textContainer)
-          }
+            textContainer.y = 30 - textContainer.height / 2;
+            textContainer.x = -(textContainer.width / 2) + 30;
+            avatar.addChild(textContainer);
+          };
 
           const onLeave = () => {
-            gameContainer.style.cursor = "crosshair"
-            avatar.removeChild(textContainer)
-          }
+            gameContainer.style.cursor = "crosshair";
+            avatar.removeChild(textContainer);
+          };
 
-          player.avatar.on("mousedown", onDown)
-          player.avatar.on("touchstart", onDown)
-          player.avatar.on("mouseover", onEnter)
-          player.avatar.on("mouseout", onLeave)
+          player.avatar.on("mousedown", onDown);
+          player.avatar.on("touchstart", onDown);
+          player.avatar.on("mouseover", onEnter);
+          player.avatar.on("mouseout", onLeave);
 
-          playerLayer.addChild(player.avatar)
+          playerLayer.addChild(player.avatar);
 
           if (player.isSelf) {
             // __ Follow own avatar in viewport
             viewport.follow(player.avatar, {
               radius: 20,
               acceleration: 400,
-            })
-            localUserSessionID.set(player.id)
+            });
+            localUserSessionID.set(player.id);
             // __ Uncomment this line to show the accredited user toolkit while developing...
             // localUserAuthenticated.set(true)
 
@@ -616,18 +622,18 @@
             //   navigate(returnPath)
             // }
             // __ Loading is done
-            setUIState(STATE.READY)
+            setUIState(STATE.READY);
           }
 
-          return player
-        }
+          return player;
+        };
 
         // __ Get a random avatar
         // console.log('!!!!!! activeAvatars', activeAvatars)
         // console.log('===> filtered', activeAvatars.filter(a => !a.notRandom))
-        const randomAvatar = sample(activeAvatars.filter(a => !a.notRandom))
+        const randomAvatar = sample(activeAvatars.filter((a) => !a.notRandom));
 
-        let playerObject = {}
+        let playerObject = {};
 
         // if (section === "authenticate" && sso && sig) {
         //   playerObject = {
@@ -642,13 +648,13 @@
           name: $localUserName,
           avatar: randomAvatar._id,
           tint: "0xff0000",
-        }
+        };
         // }
 
         // __ Join game room
         gameClient
           .joinOrCreate("game", playerObject)
-          .then(gameRoom => {
+          .then((gameRoom) => {
             // ******
             // PLAYER
             // ******
@@ -658,28 +664,28 @@
               try {
                 if (get(localPlayers[sessionId], "avatar", false)) {
                   // Remove player graphics
-                  playerLayer.removeChild(localPlayers[sessionId].avatar)
+                  playerLayer.removeChild(localPlayers[sessionId].avatar);
                   // !!! HACK
                   setTimeout(() => {
                     // Delete player object
                     // console.log('deleting player')
-                    delete localPlayers[sessionId]
-                    localPlayers = localPlayers
-                  }, 500)
+                    delete localPlayers[sessionId];
+                    localPlayers = localPlayers;
+                  }, 500);
                 }
               } catch (err) {
-                setUIState(STATE.ERROR, err)
-                console.dir(err)
+                setUIState(STATE.ERROR, err);
+                console.dir(err);
               }
-            }
+            };
 
             // PLAYER => ADD
             gameRoom.state.players.onAdd = (player, sessionId) => {
-              localPlayers[sessionId] = createPlayer(player, sessionId)
+              localPlayers[sessionId] = createPlayer(player, sessionId);
               // cull.add(localPlayers[sessionId].avatar);
               // console.dir(cull)
               // PLAYER => CHANGE
-              player.onChange = changes => {
+              player.onChange = (changes) => {
                 // if ($localUserSessionID === sessionId) {
                 // localPlayers[sessionId].carrying = player.carrying
                 // __ Carrying ?
@@ -693,28 +699,28 @@
                 // }
                 if (player.path.waypoints.length > 0) {
                   // __ Normal movement
-                  moveQ[sessionId] = player.path.waypoints
+                  moveQ[sessionId] = player.path.waypoints;
                 } else {
                   // __ Teleport
-                  localPlayers[sessionId].area = player.area
-                  localPlayers[sessionId].avatar.x = player.x
-                  localPlayers[sessionId].avatar.y = player.y
-                  localPlayers[sessionId].avatar.setAnimation("rest")
+                  localPlayers[sessionId].area = player.area;
+                  localPlayers[sessionId].avatar.x = player.x;
+                  localPlayers[sessionId].avatar.y = player.y;
+                  localPlayers[sessionId].avatar.setAnimation("rest");
                   if ($localUserSessionID === sessionId) {
-                    currentArea.set(localPlayers[sessionId].area)
+                    currentArea.set(localPlayers[sessionId].area);
                   }
                 }
-              }
-            }
+              };
+            };
 
             // PLAYER => BANNED
-            gameRoom.onMessage("banned", message => {
-              setUIState(STATE.ERROR, "You have been banned")
-            })
+            gameRoom.onMessage("banned", (message) => {
+              setUIState(STATE.ERROR, "You have been banned");
+            });
 
             // PLAYER => ILLEGAL MOVE
-            gameRoom.onMessage("illegalMove", message => {
-              const initialX = localPlayers[$localUserSessionID].avatar.x
+            gameRoom.onMessage("illegalMove", (message) => {
+              const initialX = localPlayers[$localUserSessionID].avatar.x;
               // __ Vibrate avatar
               tweener
                 .add(localPlayers[$localUserSessionID].avatar)
@@ -735,90 +741,90 @@
                     x: initialX,
                   },
                   0.05
-                )
-              hideTarget()
-            })
+                );
+              hideTarget();
+            });
 
             // PLAYER => CLICK / TAP
-            viewport.on("clicked", e => {
+            viewport.on("clicked", (e) => {
               // __ Cancel current movement
-              delete moveQ[$localUserSessionID]
-              hideTarget()
+              delete moveQ[$localUserSessionID];
+              hideTarget();
               // __ Start new movement
-              const targetX = Math.round(e.world.x)
-              const targetY = Math.round(e.world.y)
-              showTarget(targetX, targetY)
+              const targetX = Math.round(e.world.x);
+              const targetY = Math.round(e.world.y);
+              showTarget(targetX, targetY);
               gameRoom.send("go", {
                 x: targetX,
                 y: targetY,
                 originX: localPlayers[$localUserSessionID].avatar.x,
                 originY: localPlayers[$localUserSessionID].avatar.y,
-              })
-            })
+              });
+            });
 
             // PLAYER => TOUCH END
-            viewport.on("touchend", e => {
+            viewport.on("touchend", (e) => {
               // __ Convert screen coordinates to world coordinates
-              const world = viewport.toWorld(e.data.global.x, e.data.global.y)
+              const world = viewport.toWorld(e.data.global.x, e.data.global.y);
               // __ Cancel current movement
-              delete moveQ[$localUserSessionID]
-              hideTarget()
+              delete moveQ[$localUserSessionID];
+              hideTarget();
               // // __ Start new movement
-              const targetX = Math.round(world.x)
-              const targetY = Math.round(world.y)
-              showTarget(targetX, targetY)
+              const targetX = Math.round(world.x);
+              const targetY = Math.round(world.y);
+              showTarget(targetX, targetY);
               gameRoom.send("go", {
                 x: targetX,
                 y: targetY,
                 originX: localPlayers[$localUserSessionID].avatar.x,
                 originY: localPlayers[$localUserSessionID].avatar.y,
-              })
-            })
+              });
+            });
 
             // PLAYER => TELEPORT
-            teleportTo = area => {
+            teleportTo = (area) => {
               // __ Cancel current movement
-              delete moveQ[$localUserSessionID]
-              hideTarget()
+              delete moveQ[$localUserSessionID];
+              hideTarget();
               gameRoom.send("teleport", {
                 area: area,
-              })
-            }
+              });
+            };
 
             // *******
             // MESSAGE
             // *******
 
             // MESSAGE => ADD
-            gameRoom.state.messages.onAdd = message => {
-              chatMessages = [...chatMessages, message]
+            gameRoom.state.messages.onAdd = (message) => {
+              chatMessages = [...chatMessages, message];
               if ($localUserUUID == message.uuid) {
                 const messageContainerEl = document.querySelector(
                   "#message-container"
-                )
+                );
                 if (messageContainerEl) {
                   setTimeout(() => {
                     messageContainerEl.scrollTo({
                       top: messageContainerEl.scrollHeight,
                       left: 0,
                       behavious: "smooth",
-                    })
-                  }, 200)
+                    });
+                  }, 200);
                 }
               }
-            }
+            };
 
             // MESSAGE => REMOVE
-            gameRoom.onMessage("nukeMessage", msgIdToRemove => {
+            gameRoom.onMessage("nukeMessage", (msgIdToRemove) => {
               const itemIndex = chatMessages.findIndex(
-                m => m.msgId === msgIdToRemove
-              )
-              chatMessages.splice(itemIndex, 1)
-              chatMessages = chatMessages
-            })
+                (m) => m.msgId === msgIdToRemove
+              );
+              chatMessages.splice(itemIndex, 1);
+              chatMessages = chatMessages;
+            });
 
             // MESSAGE => SUBMIT
-            submitChat = event => {
+            submitChat = (event) => {
               try {
                 gameRoom.send("submitChatMessage", {
                   msgId: nanoid(),
@@ -830,12 +836,12 @@
                   text: event.detail.text,
                   room: $currentTextRoom,
                   tint: localPlayers[$localUserSessionID].tint,
-                })
+                });
               } catch (err) {
-                setUIState(STATE.ERROR, err)
-                console.dir(err)
+                setUIState(STATE.ERROR, err);
+                console.dir(err);
               }
-            }
+            };
 
             // ************************
             // CASE STUDIES => DISABLED!
@@ -985,125 +991,125 @@
             // ******************************
             // CLIENT LEFT / WAS DISCONNECTED
             // ******************************
-            gameRoom.onLeave(code => {
-              const exitMsg = "Disconnected from server. Code: " + code
+            gameRoom.onLeave((code) => {
+              const exitMsg = "Disconnected from server. Code: " + code;
               // console.log(exitMsg);
               // __ Show notification of disconnection
-              setUIState(STATE.DISCONNECTED)
-              disconnectionCode = code
-              reconnectionAttempts = 1
+              setUIState(STATE.DISCONNECTED);
+              disconnectionCode = code;
+              reconnectionAttempts = 1;
               // TODO: Try to reconnect
-              const reconnect = i => {
+              const reconnect = (i) => {
                 console.log(
                   "Trying to reconnect user:",
                   $localUserSessionID,
                   "....",
                   i
-                )
+                );
                 gameClient
                   .reconnect("game", $localUserSessionID)
-                  .then(room => {
+                  .then((room) => {
                     // __ Successfully reconnected
-                    setUIState(STATE.READY)
+                    setUIState(STATE.READY);
                   })
-                  .catch(e => {
-                    console.error("join error", e)
-                  })
+                  .catch((e) => {
+                    console.error("join error", e);
+                  });
                 //   setInterval(() => {
                 //   reconnectionAttempts++
                 // }, 5000)
-              }
-              reconnect(1)
-            })
+              };
+              reconnect(1);
+            });
 
             // ************************
             // GENERAL ERROR HANDLING
             // ************************
             gameRoom.onError((code, message) => {
-              setUIState(STATE.ERROR, message)
-              console.error("Gameserver error:", message)
-            })
+              setUIState(STATE.ERROR, message);
+              console.error("Gameserver error:", message);
+            });
           })
-          .catch(e => {
-            console.dir(e)
+          .catch((e) => {
+            console.dir(e);
             if (e.code == 4215) {
-              setUIState(STATE.ERROR, "You have been banned")
+              setUIState(STATE.ERROR, "You have been banned");
             } else {
-              setUIState(STATE.ERROR, "FAILED TO CONNECT TO GAMESERVER")
+              setUIState(STATE.ERROR, "FAILED TO CONNECT TO GAMESERVER");
             }
-          })
-      })
+          });
+      });
 
       // __ Add exhibition (static) case studies
-      caseStudies.then(caseStudies => {
+      caseStudies.then((caseStudies) => {
         caseStudies
-          .filter(cs => cs._type === "caseStudyExhibition")
+          .filter((cs) => cs._type === "caseStudyExhibition")
           .forEach((cs, i) => {
-            const spriteUrl = get(cs, "spriteLink.spriteJsonURL", "")
-            const spriteId = "caseStudy-" + cs._id
-            const csLoader = new PIXI.Loader()
+            const spriteUrl = get(cs, "spriteLink.spriteJsonURL", "");
+            const spriteId = "caseStudy-" + cs._id;
+            const csLoader = new PIXI.Loader();
             csLoader.add(spriteId, spriteUrl).load((loader, resources) => {
               const frames = new PIXI.AnimatedSprite(
                 resources[spriteId].spritesheet.animations["frames"]
-              )
-              frames.animationSpeed = 0.02
-              frames.play()
+              );
+              frames.animationSpeed = 0.02;
+              frames.play();
 
               // __ Name graphics (shown on hover)
-              const textSprite = new PIXI.Text(cs.title, TEXT_STYLE_CASE_STUDY)
-              const txtBG = new PIXI.Sprite(PIXI.Texture.WHITE)
-              txtBG.tint = 0x000000
-              txtBG.width = textSprite.width + 10
-              txtBG.height = textSprite.height + 10
-              textSprite.x = 5
-              textSprite.y = 5
-              const textContainer = new PIXI.Container()
-              textContainer.addChild(txtBG, textSprite)
-              textContainer.name = "text"
+              const textSprite = new PIXI.Text(cs.title, TEXT_STYLE_CASE_STUDY);
+              const txtBG = new PIXI.Sprite(PIXI.Texture.WHITE);
+              txtBG.tint = 0x000000;
+              txtBG.width = textSprite.width + 10;
+              txtBG.height = textSprite.height + 10;
+              textSprite.x = 5;
+              textSprite.y = 5;
+              const textContainer = new PIXI.Container();
+              textContainer.addChild(txtBG, textSprite);
+              textContainer.name = "text";
 
-              const caseStudyLocation = new PIXI.Container()
-              caseStudyLocation.addChild(frames)
-              caseStudyLocation.x = cs.x
-              caseStudyLocation.y = cs.y
-              caseStudyLocation.pivot.x = caseStudyLocation.width / 2
-              caseStudyLocation.pivot.y = caseStudyLocation.height / 2
-              caseStudyLocation.title = cs.title
-              caseStudyLocation.interactive = true
+              const caseStudyLocation = new PIXI.Container();
+              caseStudyLocation.addChild(frames);
+              caseStudyLocation.x = cs.x;
+              caseStudyLocation.y = cs.y;
+              caseStudyLocation.pivot.x = caseStudyLocation.width / 2;
+              caseStudyLocation.pivot.y = caseStudyLocation.height / 2;
+              caseStudyLocation.title = cs.title;
+              caseStudyLocation.interactive = true;
 
-              const onDown = e => {
-                navigate("/projects/" + get(cs, "slug.current", false))
-                e.stopPropagation()
-              }
+              const onDown = (e) => {
+                navigate("/projects/" + get(cs, "slug.current", false));
+                e.stopPropagation();
+              };
 
-              const onEnter = e => {
-                gameContainer.style.cursor = "pointer"
+              const onEnter = (e) => {
+                gameContainer.style.cursor = "pointer";
                 textContainer.y =
-                  caseStudyLocation.height / 2 - textContainer.height / 2
+                  caseStudyLocation.height / 2 - textContainer.height / 2;
                 textContainer.x =
-                  -(textContainer.width / 2) + caseStudyLocation.width / 2
-                caseStudyLocation.addChild(textContainer)
-              }
+                  -(textContainer.width / 2) + caseStudyLocation.width / 2;
+                caseStudyLocation.addChild(textContainer);
+              };
 
-              const onLeave = e => {
-                gameContainer.style.cursor = "crosshair"
-                caseStudyLocation.removeChild(textContainer)
-              }
+              const onLeave = (e) => {
+                gameContainer.style.cursor = "crosshair";
+                caseStudyLocation.removeChild(textContainer);
+              };
 
-              caseStudyLocation.on("mousedown", onDown)
-              caseStudyLocation.on("touchstart", onDown)
-              caseStudyLocation.on("mouseover", onEnter)
-              caseStudyLocation.on("mouseout", onLeave)
+              caseStudyLocation.on("mousedown", onDown);
+              caseStudyLocation.on("touchstart", onDown);
+              caseStudyLocation.on("mouseover", onEnter);
+              caseStudyLocation.on("mouseout", onLeave);
 
-              exhibitionLayer.addChild(caseStudyLocation)
-            })
-          })
-      })
+              exhibitionLayer.addChild(caseStudyLocation);
+            });
+          });
+      });
 
       // __ Add audio installations
-      audioInstallations.then(audioInstallations => {
+      audioInstallations.then((audioInstallations) => {
         audioInstallations.forEach((ai, i) => {
-          const effectiveRadius = ai.radius || 400
-          const audioInstallationLocation = new PIXI.Container()
+          const effectiveRadius = ai.radius || 400;
+          const audioInstallationLocation = new PIXI.Container();
           // const aIgfx = new PIXI.Graphics()
           // aIgfx.beginFill(0xff0000)
           // aIgfx.alpha = 0.4
@@ -1117,73 +1123,73 @@
               src: ai.streamURL,
               html5: true,
               format: ["mp3", "aac"],
-            })
+            });
           } else {
             audioInstallationLocation.audio = new Howl({
               src: [ai.audioURL],
               loop: true,
-            })
+            });
           }
 
-          audioInstallationLocation.x = ai.x
-          audioInstallationLocation.y = ai.y
+          audioInstallationLocation.x = ai.x;
+          audioInstallationLocation.y = ai.y;
           audioInstallationLocation.pivot.x =
-            audioInstallationLocation.width / 2
+            audioInstallationLocation.width / 2;
           audioInstallationLocation.pivot.y =
-            audioInstallationLocation.height / 2
-          audioInstallationLocation.title = ai.title
-          audioInstallationLocation.noAutoplay = ai.noAutoplay
-          audioInstallationLocation.slug = get(ai, "slug.current")
-          audioInstallationLocation.radius = effectiveRadius
-          audioInstallationLocation.interactive = false
+            audioInstallationLocation.height / 2;
+          audioInstallationLocation.title = ai.title;
+          audioInstallationLocation.noAutoplay = ai.noAutoplay;
+          audioInstallationLocation.slug = get(ai, "slug.current");
+          audioInstallationLocation.radius = effectiveRadius;
+          audioInstallationLocation.interactive = false;
 
-          audioInstallationLayer.addChild(audioInstallationLocation)
-        })
-      })
+          audioInstallationLayer.addChild(audioInstallationLocation);
+        });
+      });
 
       // __ Add landmarks
-      landMarks.then(landMarks => {
+      landMarks.then((landMarks) => {
         landMarks.forEach((lm, i) => {
-          const spriteUrl = get(lm, "spriteJsonURL", "")
-          const spriteId = "landMark-" + lm._id
-          const lmLoader = new PIXI.Loader()
+          const spriteUrl = get(lm, "spriteJsonURL", "");
+          const spriteId = "landMark-" + lm._id;
+          const lmLoader = new PIXI.Loader();
 
           lmLoader.add(spriteId, spriteUrl).load((loader, resources) => {
             const frames = new PIXI.AnimatedSprite(
               resources[spriteId].spritesheet.animations["frames"]
-            )
+            );
             // frames.visible = true
-            frames.animationSpeed = 0.02
-            frames.play()
+            frames.animationSpeed = 0.02;
+            frames.play();
 
-            const landMarkLocation = new PIXI.Container()
-            landMarkLocation.addChild(frames)
-            landMarkLocation.x = lm.x
-            landMarkLocation.y = lm.y
-            landMarkLocation.pivot.x = landMarkLocation.width / 2
-            landMarkLocation.pivot.y = landMarkLocation.height / 2
-            landMarkLayer.addChild(landMarkLocation)
-          })
-        })
-      })
-    })
-  }
+            const landMarkLocation = new PIXI.Container();
+            landMarkLocation.addChild(frames);
+            landMarkLocation.x = lm.x;
+            landMarkLocation.y = lm.y;
+            landMarkLocation.pivot.x = landMarkLocation.width / 2;
+            landMarkLocation.pivot.y = landMarkLocation.height / 2;
+            landMarkLayer.addChild(landMarkLocation);
+          });
+        });
+      });
+    });
+  };
 
   const getResponsiveWidth = () =>
     window.matchMedia("(max-width: 800px)").matches || sidebarHidden
       ? window.innerWidth
-      : window.innerWidth - 400
+      : window.innerWidth - 400;
 
   onMount(async () => {
     // ___ Set Global scale mode to hard edges
-    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
     // ___ Create Pixi App
     app = new PIXI.Application({
       width: MAP.WIDTH,
       height: MAP.HEIGHT,
       resolution: 1,
-    })
+    });
 
     // __ Create Pixi Viewport
     viewport = new Viewport({
@@ -1192,8 +1198,8 @@
       worldWidth: MAP.WIDTH,
       worldHeight: MAP.HEIGHT,
       interaction: app.renderer.plugins.interaction,
-    })
-    app.stage.addChild(viewport)
+    });
+    app.stage.addChild(viewport);
 
     // ___ Create and add layers
     // (1) => Map
@@ -1202,55 +1208,55 @@
     // (4) => Emergent/mobil case studies
     // (5) => Players
     // (6) => Landmarks
-    mapLayer = new PIXI.Container()
+    mapLayer = new PIXI.Container();
     // emergentLayer = new PIXI.Container()
-    exhibitionLayer = new PIXI.Container()
-    audioInstallationLayer = new PIXI.Container()
-    playerLayer = new PIXI.Container()
-    landMarkLayer = new PIXI.Container()
-    viewport.addChild(mapLayer)
-    viewport.addChild(audioInstallationLayer)
-    viewport.addChild(exhibitionLayer)
+    exhibitionLayer = new PIXI.Container();
+    audioInstallationLayer = new PIXI.Container();
+    playerLayer = new PIXI.Container();
+    landMarkLayer = new PIXI.Container();
+    viewport.addChild(mapLayer);
+    viewport.addChild(audioInstallationLayer);
+    viewport.addChild(exhibitionLayer);
     // viewport.addChild(emergentLayer)
-    viewport.addChild(playerLayer)
-    viewport.addChild(landMarkLayer)
+    viewport.addChild(playerLayer);
+    viewport.addChild(landMarkLayer);
     // viewport.drag()
 
     // ___ Start Pixi ticker
-    ticker = PIXI.Ticker.shared
-    ticker.start()
-    ticker.add(updatePositions)
+    ticker = PIXI.Ticker.shared;
+    ticker.start();
+    ticker.add(updatePositions);
 
     // __ Add pixi view to DOM
-    gameContainer.appendChild(app.view)
+    gameContainer.appendChild(app.view);
 
     window.onresize = () => {
-      const responsiveWidth = getResponsiveWidth()
-      viewport.resize(responsiveWidth, window.innerHeight)
-      app.renderer.resize(responsiveWidth, window.innerHeight)
-    }
-    window.dispatchEvent(new Event("resize"))
+      const responsiveWidth = getResponsiveWidth();
+      viewport.resize(responsiveWidth, window.innerHeight);
+      app.renderer.resize(responsiveWidth, window.innerHeight);
+    };
+    window.dispatchEvent(new Event("resize"));
 
     // ___ Give the local user a UUID
-    localUserUUID.set(nanoid())
+    localUserUUID.set(nanoid());
 
     // __ Redirect to authentication if user is marked as logged in
-    const usernameCookie = Cookies.get("postrational-username")
-    console.log("usernameCookie", usernameCookie)
+    const usernameCookie = Cookies.get("postrational-username");
+    console.log("usernameCookie", usernameCookie);
     if (!usernameCookie) {
       // ___ Prompt user to enter name
-      setUIState(STATE.SETUSERNAME)
+      setUIState(STATE.SETUSERNAME);
     } else {
       // ___ Set username from cookie
-      localUserName.set(usernameCookie)
+      localUserName.set(usernameCookie);
       // ___ Show welcome card if user has not visited in last 7 days
-      showWelcomeCard = Cookies.get("postrational-visitor") ? false : true
+      showWelcomeCard = Cookies.get("postrational-visitor") ? false : true;
       // showWelcomeCard = true
-      Cookies.set("postrational-visitor", "true", { expires: 7 })
+      Cookies.set("postrational-visitor", "true", { expires: 7 });
       // __ Start the game...
-      initializeGameWorld()
+      initializeGameWorld();
     }
-  })
+  });
 </script>
 
 <style lang="scss">
@@ -1336,14 +1342,13 @@
     }
 
     .button {
-
       text-transform: uppercase;
       font-weight: bold;
       // letter-spacing: 0.05em;
       padding: 4px $SPACE_M 2px $SPACE_M;
       display: inline-table;
-      position:relative;
-      top:-3px;
+      position: relative;
+      top: -3px;
 
       border: 1px solid $COLOR_MID_2;
       color: $COLOR_MID_2;
@@ -1705,8 +1710,8 @@
           class="hide-button"
           in:scale={{ delay: 500 }}
           on:click={() => {
-            sidebarHidden = !sidebarHidden
-            window.dispatchEvent(new Event('resize'))
+            sidebarHidden = !sidebarHidden;
+            window.dispatchEvent(new Event('resize'));
           }}>
           »
         </div>
@@ -1717,8 +1722,8 @@
         class:hidden={sidebarHidden}
         on:click={() => {
           if (sidebarHidden) {
-            sidebarHidden = false
-            window.dispatchEvent(new Event('resize'))
+            sidebarHidden = false;
+            window.dispatchEvent(new Event('resize'));
           }
         }}>
         <!-- MINIMAP -->
@@ -1755,7 +1760,7 @@
             {#each TEXT_ROOMS as TR}
               {#if $currentTextRoom === TR}
                 <Chat
-                  chatMessages={chatMessages.filter(m => m.room === TR || m.directed)}
+                  chatMessages={chatMessages.filter((m) => m.room === TR || m.directed)}
                   currentRoom={TR} />
               {/if}
             {/each}
@@ -1765,11 +1770,11 @@
               <ToolBar
                 {section}
                 on:submit={submitChat}
-                on:teleport={e => {
+                on:teleport={(e) => {
                   // __ Cancel current movement
-                  delete moveQ[$localUserSessionID]
-                  hideTarget()
-                  teleportTo($currentArea === 5 ? 'green' : 'blue')
+                  delete moveQ[$localUserSessionID];
+                  hideTarget();
+                  teleportTo($currentArea === 5 ? 'green' : 'blue');
                 }} />
             </div>
           </div>
@@ -1777,9 +1782,9 @@
         <!-- MENUBAR -->
         <div class="menu">
           <Menu
-            on:username={e => {
-              Cookies.remove('postrational-username')
-              window.location = '/'
+            on:username={(e) => {
+              Cookies.remove('postrational-username');
+              window.location = '/';
             }} />
         </div>
       </div>
@@ -1801,14 +1806,18 @@
     <div class="content-item active" transition:fly={{ y: -200 }}>
       <div
         class="close"
-        on:click={e => {
-          closedAreaCards.push($currentAreaObject.areaIndex)
-          closedAreaCards = closedAreaCards
+        on:click={(e) => {
+          closedAreaCards.push($currentAreaObject.areaIndex);
+          closedAreaCards = closedAreaCards;
         }}>
-        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M28.9 11.1C28.6 10.8 28.2 10.8 27.9 11.1L20 19L12.1 11.1C11.8 10.8 11.4 10.8 11.1 11.1C10.8 11.4 10.8 11.8 11.1 12.1L19 20L11.1 27.9C10.8 28.2 10.8 28.6 11.1 28.9C11.4 29.2 11.8 29.2 12.1 28.9L20 21L27.9 28.9C28.2 29.2 28.6 29.2 28.9 28.9C29.2 28.6 29.2 28.2 28.9 27.9L21 20L28.9 12.1C29.2 11.8 29.2 11.4 28.9 11.1Z" />
-          </svg>
-          
+        <svg
+          width="40"
+          height="40"
+          viewBox="0 0 40 40"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M28.9 11.1C28.6 10.8 28.2 10.8 27.9 11.1L20 19L12.1 11.1C11.8 10.8 11.4 10.8 11.1 11.1C10.8 11.4 10.8 11.8 11.1 12.1L19 20L11.1 27.9C10.8 28.2 10.8 28.6 11.1 28.9C11.4 29.2 11.8 29.2 12.1 28.9L20 21L27.9 28.9C28.2 29.2 28.6 29.2 28.9 28.9C29.2 28.6 29.2 28.2 28.9 27.9L21 20L28.9 12.1C29.2 11.8 29.2 11.4 28.9 11.1Z" />
+        </svg>
       </div>
       <Card card={$currentAreaObject.informationCard} />
     </div>
@@ -1820,7 +1829,7 @@
       {#await audioInstallations then audioInstallations}
         <AudioInstallationSingle
           {audioInstallationLayer}
-          audioInstallation={audioInstallations.find(aI => aI.slug.current === inAudioZone)} />
+          audioInstallation={audioInstallations.find((aI) => aI.slug.current === inAudioZone)} />
       {/await}
     </div>
   {/if}
@@ -1859,9 +1868,14 @@
       use:links
       transition:fly={{ y: 200, duration: 400, easing: quartOut }}>
       <a class="close" href="/">
-        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M28.9 11.1C28.6 10.8 28.2 10.8 27.9 11.1L20 19L12.1 11.1C11.8 10.8 11.4 10.8 11.1 11.1C10.8 11.4 10.8 11.8 11.1 12.1L19 20L11.1 27.9C10.8 28.2 10.8 28.6 11.1 28.9C11.4 29.2 11.8 29.2 12.1 28.9L20 21L27.9 28.9C28.2 29.2 28.6 29.2 28.9 28.9C29.2 28.6 29.2 28.2 28.9 27.9L21 20L28.9 12.1C29.2 11.8 29.2 11.4 28.9 11.1Z" />
-        </svg>          
+        <svg
+          width="40"
+          height="40"
+          viewBox="0 0 40 40"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M28.9 11.1C28.6 10.8 28.2 10.8 27.9 11.1L20 19L12.1 11.1C11.8 10.8 11.4 10.8 11.1 11.1C10.8 11.4 10.8 11.8 11.1 12.1L19 20L11.1 27.9C10.8 28.2 10.8 28.6 11.1 28.9C11.4 29.2 11.8 29.2 12.1 28.9L20 21L27.9 28.9C28.2 29.2 28.6 29.2 28.9 28.9C29.2 28.6 29.2 28.2 28.9 27.9L21 20L28.9 12.1C29.2 11.8 29.2 11.4 28.9 11.1Z" />
+        </svg>
       </a>
       <!-- CASE STUDIES -->
       {#await caseStudies then caseStudies}
@@ -1869,7 +1883,7 @@
           {#if slug}
             <!-- SINGLE CASE STUDY -->
             <CaseStudySingle
-              caseStudy={caseStudies.find(cs => cs.slug.current === slug)} />
+              caseStudy={caseStudies.find((cs) => cs.slug.current === slug)} />
           {:else}
             <!-- LIST CASE STUDY -->
             <CaseStudyList {caseStudies} />
@@ -1881,7 +1895,7 @@
         {#if section == 'profiles' && slug}
           <!-- SINGLE PROFILE -->
           <UserProfileSingle
-            user={users.find(u => get(u, 'slug.current', '') === slug)} />
+            user={users.find((u) => get(u, 'slug.current', '') === slug)} />
         {/if}
       {/await}
       <!-- EVENTS -->
@@ -1891,7 +1905,7 @@
             {#if slug}
               <!-- SINGLE EVENT -->
               <EventSingle
-                event={events.find(ev => ev.slug.current === slug)} />
+                event={events.find((ev) => ev.slug.current === slug)} />
             {:else}
               <!-- LIST EVENTS -->
               <EventListFull {events} {exhibitions} />
@@ -1904,7 +1918,7 @@
         {#if section == 'pages' && slug}
           <!-- SINGLE PAGE -->
           <PageSingle
-            page={pages.find(p => get(p, 'slug.current', '') === slug)} />
+            page={pages.find((p) => get(p, 'slug.current', '') === slug)} />
         {/if}
       {/await}
     </div>
@@ -1934,23 +1948,27 @@
           class="mobile-toolkit"
           use:links
           class:expanded={mobileExpanded}
-          on:click={e => {
+          on:click={(e) => {
             if ((!mobileExpanded && e.target.nodeName == 'INPUT') || e.target.classList.contains('toolbar-item')) {
-              mobileExpanded = true
+              mobileExpanded = true;
             }
           }}>
           {#if mobileExpanded}
             <div
               class="close"
-              on:click={e => {
-                mobileExpanded = false
-                e.stopPropagation()
-                navigate('/')
+              on:click={(e) => {
+                mobileExpanded = false;
+                e.stopPropagation();
+                navigate('/');
               }}>
-              <svg width="40" height="40" viewBox="0 0 40 40"  xmlns="http://www.w3.org/2000/svg">
-                <path d="M28.9 11.1C28.6 10.8 28.2 10.8 27.9 11.1L20 19L12.1 11.1C11.8 10.8 11.4 10.8 11.1 11.1C10.8 11.4 10.8 11.8 11.1 12.1L19 20L11.1 27.9C10.8 28.2 10.8 28.6 11.1 28.9C11.4 29.2 11.8 29.2 12.1 28.9L20 21L27.9 28.9C28.2 29.2 28.6 29.2 28.9 28.9C29.2 28.6 29.2 28.2 28.9 27.9L21 20L28.9 12.1C29.2 11.8 29.2 11.4 28.9 11.1Z" />
-                </svg>
-                
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M28.9 11.1C28.6 10.8 28.2 10.8 27.9 11.1L20 19L12.1 11.1C11.8 10.8 11.4 10.8 11.1 11.1C10.8 11.4 10.8 11.8 11.1 12.1L19 20L11.1 27.9C10.8 28.2 10.8 28.6 11.1 28.9C11.4 29.2 11.8 29.2 12.1 28.9L20 21L27.9 28.9C28.2 29.2 28.6 29.2 28.9 28.9C29.2 28.6 29.2 28.2 28.9 27.9L21 20L28.9 12.1C29.2 11.8 29.2 11.4 28.9 11.1Z" />
+              </svg>
             </div>
           {/if}
           <!-- {#if section == 'seminar'} -->
@@ -1964,7 +1982,7 @@
           {#each TEXT_ROOMS as TR}
             {#if $currentTextRoom === TR}
               <Chat
-                chatMessages={chatMessages.filter(m => m.room === TR || m.directed)}
+                chatMessages={chatMessages.filter((m) => m.room === TR || m.directed)}
                 currentRoom={TR}
                 mobile={true}
                 {mobileExpanded} />
@@ -1978,11 +1996,11 @@
               mobile={true}
               {mobileExpanded}
               on:submit={submitChat}
-              on:teleport={e => {
+              on:teleport={(e) => {
                 if (localPlayers[$localUserSessionID].area === 5) {
-                  teleportTo('green')
+                  teleportTo('green');
                 } else {
-                  teleportTo('blue')
+                  teleportTo('blue');
                 }
               }} />
           </div>
@@ -2025,8 +2043,8 @@
 
       <div
         class="mob-message"
-        on:click={e => {
-          audioChatActive = true
+        on:click={(e) => {
+          audioChatActive = true;
         }}>
         Join Audio
         <svg
@@ -2044,8 +2062,8 @@
 
       <div
         class="button"
-        on:click={e => {
-          audioChatActive = true
+        on:click={(e) => {
+          audioChatActive = true;
         }}>
         Join
       </div>
@@ -2059,8 +2077,8 @@
       userName={$localUserName}
       roomName={get(audioRoomNames, 'audioRoom_' + $currentAudioRoom, 'ERROR')}
       roomId={$currentAudioRoom}
-      on:close={e => {
-        audioChatActive = false
+      on:close={(e) => {
+        audioChatActive = false;
       }} />
   {/if}
 {/await}
@@ -2077,8 +2095,8 @@
       <Tutorial card={tutorialCard} bind:showWelcomeCard />
       <div
         class="background-hittable"
-        on:click={e => {
-          showWelcomeCard = false
+        on:click={(e) => {
+          showWelcomeCard = false;
         }} />
     </div>
   {/await}
@@ -2097,8 +2115,8 @@
 <!-- USERNAME DIALOG -->
 {#if UI.state == STATE.SETUSERNAME}
   <UsernameDialog
-    on:username={e => {
-      Cookies.set('postrational-username', e.detail.username, { expires: 7 })
-      window.location = '/'
+    on:username={(e) => {
+      Cookies.set('postrational-username', e.detail.username, { expires: 7 });
+      window.location = '/';
     }} />
 {/if}
